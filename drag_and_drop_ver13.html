@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Drag and Drop Script</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="drag_and_drop_ver13_styles_ver3.css" />
+  
+</head>
+
+<body>
+
+  <div class="box">
+    <div id="dropzone">
+      <div class="icon-element">
+        <i class="fas fa-image"></i>
+          <!-- <i class="drag_and_drop_icon"></i> -->
+      </div>
+      <header>Drag your file here.</header>
+      <!-- Load file by button and show description -->
+        <input type="file" id="readFile" multiple size="70" hidden="hidden">
+        <button type="button" id="prettyBtn" onclick="readSelectedFile()">Choose the file</button>
+        <span class="label">No file are choosen</span>
+        <span class="support-types">Support : JPEG, JPG, PNG</span>
+    </div>
+    
+  </div>
+  <div id="resultArea">
+    <div id="icon"></div>
+    <div>
+      <p id="info"></p>
+    </div>
+  </div>
+
+
+
+
+<script>
+
+const dropArea = document.getElementById("dropzone");
+const dropAreaInfo = document.getElementById("info");
+const showIconPlace = document.getElementById("icon");
+const loadedFilesByClick = document.getElementById("readFile");
+const chooseSpecificType = document.getElementById("options");
+
+//const listOfTypeFiles = ['application/msword','application/msword'];
+
+const listOfTypeFiles = [{typeOfFile:'application/msword', 
+                          iconsLocation:'file_icons/icons8-doc-52.png'},
+                          {typeOfFile:'text/plain',
+                          iconsLocation: 'file_icons/icons8-doc-52.png'}];
+
+//ZLiczamy laczna pojemnosc plikow
+var fileObject = 0;
+var sumOfSize = 0;
+var arg = 0;
+var countCondition = 0;
+var newParag, secondparag = 0;
+
+function displayFileParameter(f){
+        newParag = document.createElement("p");
+        secondparag = document.createElement("p");
+        var name = document.createTextNode(f.name);
+        var size = document.createTextNode(f.size+' KB');
+                  
+        newParag.appendChild(name);
+        secondparag.appendChild(size);
+        dropAreaInfo.appendChild(newParag);
+        dropAreaInfo.appendChild(secondparag);
+}
+
+function filesWithdata(f){
+        var picture = new Image(70,140);
+        picture.src = listOfTypeFiles.iconsLocation[countCondition];
+        showIconPlace.appendChild(picture);
+               
+        displayFileParameter(f);
+}
+
+function filterSettings(f){
+    if(f.type ===  "image/jpeg")
+    {
+              const reader = new FileReader();
+              reader.readAsDataURL(f);
+              reader.addEventListener("load", function(){
+                  const pictureElement = document.createElement('li');
+                  pictureElement.innerHTML = '<img src=" ' +this.result+'" style="width:200px" />'; 
+                  displayFileParameter(f);
+                  showIconPlace.appendChild(pictureElement);
+                  showIconPlace.width = "50";
+              });
+
+    }
+
+    if(f.type ===  "application/msword")
+    {
+          var picture = new Image(70,140);
+          picture.src = "file_icons/icons8-doc-52.png";
+          showIconPlace.appendChild(picture);
+               
+          displayFileParameter(f);
+    }
+
+    if(f.type === "text/plain")
+    {
+          var picture = new Image(70,140);
+          picture.src = "file_icons/icon_text.png";
+          showIconPlace.appendChild(picture);
+              
+          displayFileParameter(f);
+    }
+  }
+
+  function collectSizeOfFiles(fileObject)
+{
+     //Array.from(fileObject.dataTransfer.files).forEach(f =>{
+     Array.from(fileObject).forEach(f =>{
+        sumOfSize = f.size + sumOfSize;
+  }); 
+}
+
+function checkSizeAndDisplay(fileObject)
+{
+    const type_of_files = file => file.type == "text/plain" || file.type == "application/msword" || file.type == "image/jpeg";
+    
+    if(sumOfSize < 2000000)  // 2MB 
+    {
+      Array.from(fileObject).filter(type_of_files).forEach(f => 
+      {
+        filterSettings(f);
+        
+      });
+    }else{
+      alert("To many files loaded"); 
+      }
+}
+  
+
+function scanDiffTypesOfData()
+{
+  
+  dropArea.addEventListener('drop', arg => {
+      arg.preventDefault();
+      fileObject = arg.dataTransfer.files;
+
+      collectSizeOfFiles(fileObject);
+      checkSizeAndDisplay(fileObject);
+  });
+}
+
+
+//const type_of_files = file => file.type == "text/plain" || file.type == "application/msword" || file.type == "image/jpeg";
+
+//Obiekt typu plikow przenieść do funkcji checkSizeAndDisplay oraz w IF dodać petle foreach z wyswietleniem plików
+      //Całą funkcje checkSize.... przeniść do listener
+      /*
+      Array.from(arg.dataTransfer.files).filter(type_of_files).forEach(f => 
+      {
+      //filterSettings(f);
+      });*/
+
+
+dropArea.addEventListener('dragover', arg => {
+  arg.preventDefault();
+  });
+
+scanDiffTypesOfData();
+
+function readSelectedFile()
+{
+			
+			var read = document.getElementById("prettyBtn");
+			read.addEventListener("click", function()
+			{
+				readFile.click();
+			});
+}
+
+//Ladowanie oraz wyswietlanie plikow z przycisku 
+function presentLoadedFiles(arg){
+    var collectionOfFiles = loadedFilesByClick.files;
+    fileObject = collectionOfFiles;
+    //var objectOfFiles = collectSizeOfFiles;
+
+    collectSizeOfFiles(fileObject);
+    checkSizeAndDisplay(fileObject);
+
+  }
+
+  loadedFilesByClick.addEventListener("change", function(){
+        presentLoadedFiles();
+  })
+
+//WYSWIETLANIE OKRESLONEGO TYPU PLIKU
+
+function chooseTypeOfFile()
+{
+		//Wybranie odpowiedniej wartosci z kontrolki select
+		var selectedOption = chooseSpecificType.options[chooseSpecificType.selectedIndex].value;
+
+    //Czyszczenie tablicy oraz obiektow z danymi
+    showIconPlace.replaceChildren();
+    fileObject,showIconPlace,newParag, secondparag  = 0;
+    
+    if(selectedOption === listOfTypeFiles.typeOfFile[countCondition]){
+        filesWithdata(f);
+    }
+          
+     
+    
+    
+
+    console.log(fileObject);
+    /*
+    Array.from(fileObject).forEach(f =>{
+      //var specificFileType = f.dataTransfer.file.type;
+
+      pictureElement = 0;
+    });
+    */
+}
+  
+
+
+
+
+
+
+  
+
+  
+
+
+</script>
+  
+</body>
+
+</html>
